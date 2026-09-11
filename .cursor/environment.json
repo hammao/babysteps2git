@@ -1,0 +1,4 @@
+{
+  "name": "babysteps2git (R)",
+  "install": "bash .cursor/install.sh"
+}
