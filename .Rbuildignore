@@ -1,0 +1,5 @@
+^LICENSE\.md$
+^\.cursor$
+^\.github$
+^babysteps2git_.*\.tar\.gz$
+^.*\.Rcheck$

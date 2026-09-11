@@ -1,0 +1,18 @@
+Package: babysteps2git
+Title: Baby Steps Toward Version Control from R
+Version: 0.1.0
+Authors@R:
+    person("babysteps2git", "authors", email = "maintainer@example.com",
+           role = c("aut", "cre"))
+Description: A tiny example package used to bootstrap and validate a Cloud
+    Agent development environment for R package development. It provides a
+    couple of small helper functions together with unit tests so that the
+    full lint, document, test, and R CMD check workflow can be exercised end
+    to end.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
