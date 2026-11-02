@@ -1,340 +1,294 @@
-// Micropaleontology dry-sediment 2-way riffle splitter
-// Multi-part design — print as separate pieces (not one fused block).
+// =============================================================================
+// Micropaleontology dry-sediment splitter — Jones-type 2-way riffle
+// =============================================================================
+// Classic lab silhouette:
+//   large hopper → alternating /\/\/\ vane bank → L/R discharge
+//   → removable pans in a spill tray, held by an open stand.
 //
-// PART options:
-//   cup         — collection cup (print qty 4)
-//   catch_tray  — secondary spill tub with 4 cup nests (2 active + 2 spare)
-//   riffle      — Jones-style alternating chute bank (2-way split)
-//   funnel      — large anti-spill funnel
-//   assembly    — colored preview only (do NOT slice/print)
-//
-// Units: mm. Tuned for FDM PLA/PETG @ 0.2 mm layers, 2–3 perimeters.
+// PART: cup | catch_tray | frame | riffle | funnel | assembly | exploded
+// Print cup ×4. Do not print assembly/exploded.
+// Units: mm.
 
 /* [Part] */
-PART = "assembly"; // ["cup","catch_tray","riffle","funnel","assembly","tray_with_cups","exploded"]
+PART = "assembly"; // ["cup","catch_tray","frame","riffle","funnel","assembly","exploded","side_view"]
 
-/* [Tolerances] */
-wall = 2.4;
-clear = 0.5;
+wall = 2.6;
+clear = 0.6;
 $fn = 48;
 
-/* [Cup — print 4] */
-cup_w = 68;
-cup_d = 52;
-cup_h = 42;
-cup_t = 2.0;
-cup_floor = 2.4;
-
-/* [Catch tray] */
-tray_t = 2.6;
+// Catch tray (close to original 260×210 base)
+tray_w = 260;
+tray_d = 210;
+tray_h = 30;
+tray_t = 2.8;
 tray_floor = 3.0;
-tray_rim = 16;
-nest_gap = 8;
-margin = 10;
 
-/* [Riffle — 2-way] */
-n_chutes = 12;          // even → equal L/R count
-chute_w = 5.0;
-baffle = 1.8;
-bank_d = 26;
-bank_h = 48;
-exit_h = 20;
-ledge = 10;
-angle = 38;             // chute lean from vertical (deg)
+// Hi-back pans (print 4)
+cup_w = 100;
+cup_d = 72;
+cup_h = 50;
+cup_t = 2.0;
+cup_floor = 2.2;
+cup_back = 20;
 
-/* [Funnel] */
-funnel_top_w = 150;
-funnel_top_d = 100;
-funnel_collar_h = 28;
-funnel_cone_h = 50;
-funnel_t = 2.2;
+// Jones riffle bank
+n_chutes = 12;       // even
+chute_w = 7.0;
+vane_t = 2.0;
+bank_d = 60;
+bank_h = 55;
+end_w = 4.0;
+hood_reach = 36;     // side discharge overhang
 
-// ---- derived ----
-inner_bank_w = n_chutes * chute_w + (n_chutes - 1) * baffle;
-outer_bank_w = inner_bank_w + 2 * wall;
-outer_bank_d = bank_d + 2 * wall;
-throat_w = inner_bank_w + 2;
-throat_d = bank_d - 2;
+// Funnel
+funnel_w = 230;
+funnel_d = 170;
+funnel_rim = 10;
+funnel_t = 2.4;
+funnel_collar = 32;
+funnel_cone = 75;
 
-tray_inner_w = 2 * cup_w + 3 * nest_gap + 2 * margin;
-tray_inner_d = 2 * cup_d + 3 * nest_gap + 2 * margin;
-tray_outer_w = tray_inner_w + 2 * tray_t;
-tray_outer_d = tray_inner_d + 2 * tray_t;
-tray_h = tray_floor + tray_rim;
-// riffle side wings must span out to the tray-wall rails
-riffle_span_w = tray_inner_w - 2; // sits on rails inset by ~1 mm
+// Frame
+leg = 10;
+
+// derived
+inner_w = n_chutes * chute_w + (n_chutes - 1) * vane_t;
+outer_w = inner_w + 2 * end_w;
+outer_d = bank_d + 2 * wall;
+throat_w = inner_w - 2;
+throat_d = bank_d - 6;
+
+riffle_z = tray_floor + cup_h + 10;
 
 function nests() = [
-    [-(cup_w + nest_gap)/2, -(cup_d + nest_gap)/2], // A1 active
-    [ (cup_w + nest_gap)/2, -(cup_d + nest_gap)/2], // B1 active
-    [-(cup_w + nest_gap)/2,  (cup_d + nest_gap)/2], // A2 spare
-    [ (cup_w + nest_gap)/2,  (cup_d + nest_gap)/2]  // B2 spare
+    [-(cup_w/2 + 8), -22],
+    [ (cup_w/2 + 8), -22],
+    [-(cup_w/2 + 8),  78],
+    [ (cup_w/2 + 8),  78]
 ];
 
-// ============================================================================
-// CUP (single hollow shell)
-// ============================================================================
+// -----------------------------------------------------------------------------
 module cup() {
+    back = cup_d + cup_back;
     difference() {
-        // outer body + integrated rim lip (one solid)
-        union() {
-            translate([-cup_w/2, -cup_d/2, 0])
-                cube([cup_w, cup_d, cup_h]);
-            // rim lip flush with top
-            translate([-(cup_w+6)/2, -(cup_d+6)/2, cup_h - 2.5])
-                cube([cup_w + 6, cup_d + 6, 2.5]);
-        }
-        // cavity — open top
+        translate([-cup_w/2, -cup_d/2, 0])
+            cube([cup_w, back, cup_h]);
         translate([-(cup_w - 2*cup_t)/2, -(cup_d - 2*cup_t)/2, cup_floor])
-            cube([cup_w - 2*cup_t, cup_d - 2*cup_t, cup_h]);
+            cube([cup_w - 2*cup_t, back - 2*cup_t, cup_h]);
     }
 }
 
-// ============================================================================
-// CATCH TRAY — secondary spill container + 4 nests
-// ============================================================================
 module catch_tray() {
     ns = nests();
     difference() {
-        // outer tub
-        translate([-tray_outer_w/2, -tray_outer_d/2, 0])
-            cube([tray_outer_w, tray_outer_d, tray_h]);
-
-        // main cavity
-        translate([-tray_inner_w/2, -tray_inner_d/2, tray_floor])
-            cube([tray_inner_w, tray_inner_d, tray_rim + 1]);
-
-        // shallow floor recesses to locate each cup
+        translate([-tray_w/2, -tray_d/2, 0])
+            cube([tray_w, tray_d, tray_h]);
+        translate([-(tray_w - 2*tray_t)/2, -(tray_d - 2*tray_t)/2, tray_floor])
+            cube([tray_w - 2*tray_t, tray_d - 2*tray_t, tray_h]);
         for (p = ns) {
-            translate([
-                p[0] - (cup_w + 2*clear)/2,
-                p[1] - (cup_d + 2*clear)/2,
-                tray_floor - 1.0
-            ])
-                cube([cup_w + 2*clear, cup_d + 2*clear, 1.2]);
+            translate([p[0]-(cup_w+1.2)/2, p[1]-(cup_d+1.2)/2, tray_floor-1])
+                cube([cup_w+1.2, cup_d+cup_back+1.2, 1.2]);
         }
-
-        // engraved nest markers (subtractive, stay manifold)
-        markers = ["A1","B1","A2","B2"];
-        for (i = [0:3]) {
-            translate([ns[i][0], ns[i][1], tray_floor - 1.5])
-                linear_extrude(1.0)
-                    text(markers[i], size=7, halign="center", valign="center",
+        labels=["A1","B1","A2","B2"];
+        for (i=[0:3])
+            translate([ns[i][0], ns[i][1], tray_floor-1.3])
+                linear_extrude(1)
+                    text(labels[i], size=9, halign="center", valign="center",
                          font="Liberation Sans:style=Bold");
-        }
     }
-
-    // low bay walls between the four cup nests (cups remain separate removable parts)
-    bay_h = 10;
-    // cross divider (between active row and spare row)
-    translate([-tray_inner_w/2 + 2, -nest_gap/2, tray_floor])
-        cube([tray_inner_w - 4, nest_gap - 2*clear, bay_h]);
-    // center divider (between left A and right B)
-    translate([-nest_gap/2, -tray_inner_d/2 + 2, tray_floor])
-        cube([nest_gap - 2*clear, tray_inner_d - 4, bay_h]);
-
-
-    // rails supporting the riffle above the ACTIVE (front) cups
-    // Posts sit OUTSIDE the cup footprints, against the tray side walls.
-    rail_top = tray_floor + cup_h + 1.5 + 7;
-    ay = ns[0][1];
-    rail_len = cup_d + nest_gap;
-    for (sx = [-1, 1]) {
-        // flush to inner side wall, clear of cup outer edge (~±72 mm)
-        x0 = sx > 0 ? (tray_inner_w/2 - ledge) : (-tray_inner_w/2);
-        translate([x0, ay - rail_len/2, tray_floor])
-            cube([ledge, rail_len, rail_top - tray_floor]);
-    }
-    // front stop bar spanning between side rails
-    translate([
-        -tray_inner_w/2,
-        ay - cup_d/2 - nest_gap/2 - 4,
-        tray_floor
-    ])
-        cube([tray_inner_w, 4, rail_top - tray_floor]);
 }
 
-// ============================================================================
-// RIFFLE BODY — alternating chutes → left / right (2-way)
-// ============================================================================
-module chute_cut(i) {
-    // Vertical inlet slot + angled hull to side exit (true open channel)
-    x = -inner_bank_w/2 + chute_w/2 + i * (chute_w + baffle);
+module frame() {
+    // One connected stand: legs + skirt ties + top cradle
+    z_top = riffle_z + 6;
+    difference() {
+        union() {
+            // perimeter skirt tied to legs (keeps single body)
+            translate([-tray_w/2 + 8, -tray_d/2 + 8, 0])
+                cube([tray_w - 16, tray_d - 16, 6]);
+
+            // corner legs
+            for (sx=[-1,1], sy=[-1,1]) {
+                translate([
+                    sx * (tray_w/2 - 18) - (sx>0?0:leg),
+                    sy * (tray_d/2 - 18) - (sy>0?0:leg),
+                    0
+                ])
+                    cube([leg, leg, z_top]);
+            }
+
+            // top cradle rails (L/R) — riffle flanges sit here
+            for (sx=[-1,1]) {
+                translate([
+                    sx * (outer_w/2 + 3) - (sx>0?0:14),
+                    -outer_d/2 - 6,
+                    riffle_z
+                ])
+                    cube([14, outer_d + 18, 8]);
+            }
+            // front + rear crossbars
+            translate([-outer_w/2 - 14, -outer_d/2 - 10, riffle_z])
+                cube([outer_w + 28, 8, 8]);
+            translate([-outer_w/2 - 14, outer_d/2 + 2, riffle_z])
+                cube([outer_w + 28, 8, 8]);
+
+            // braces from front legs up to cradle
+            for (sx=[-1,1]) {
+                hull() {
+                    translate([
+                        sx*(tray_w/2-18)-(sx>0?0:leg)+leg/2-2,
+                        -(tray_d/2-18),
+                        6
+                    ]) cube([4,4,4]);
+                    translate([sx*(outer_w/2)-2, -outer_d/2, riffle_z])
+                        cube([4,4,4]);
+                }
+            }
+        }
+        // open the skirt interior so pans fit (only keep a rim)
+        translate([-tray_w/2 + 20, -tray_d/2 + 20, -1])
+            cube([tray_w - 40, tray_d - 40, 10]);
+    }
+}
+
+module chute_cavity(i) {
+    // Parallelepiped channel: top slot → lean out L or R to discharge
+    x = -inner_w/2 + chute_w/2 + i*(chute_w + vane_t);
     left = (i % 2 == 0);
     dir = left ? -1 : 1;
-
-    // full-height vertical slot through the bank
-    translate([x - chute_w/2, -bank_d/2 + 1, exit_h])
-        cube([chute_w, bank_d - 2, bank_h + 2]);
-
-    // angled path from mid-bank to side outlet
     hull() {
-        translate([x - chute_w/2, -bank_d/2 + 1, exit_h + bank_h * 0.55])
-            cube([chute_w, bank_d - 2, 1]);
+        // inlet at top of bank
+        translate([x - chute_w/2, -bank_d/2, bank_h - 1])
+            cube([chute_w, bank_d, 2]);
+        // outlet toward one side, below bank floor
         translate([
-            dir * (outer_bank_w/2 + 10) - chute_w/2,
-            -bank_d/2 + 2,
-            0.5
+            x - chute_w/2 + dir*(outer_w/2 + hood_reach*0.55),
+            -bank_d/2 + 3,
+            -12
         ])
-            cube([chute_w + 2, bank_d - 4, 1]);
+            cube([chute_w + 3, bank_d - 6, 2]);
     }
 }
 
 module riffle() {
-    total_h = bank_h + exit_h;
+    // Single body: solid housing + hoods, cavities cut as alternating channels
     difference() {
         union() {
-            // main block
-            translate([-outer_bank_w/2, -outer_bank_d/2, 0])
-                cube([outer_bank_w, outer_bank_d, total_h]);
-            // side wings that rest on tray-wall rails (outside the cups)
-            translate([-riffle_span_w/2, -outer_bank_d/2, exit_h + 2])
-                cube([riffle_span_w, outer_bank_d, 6]);
-            // funnel socket collar
-            translate([-(throat_w + 6)/2, -(throat_d + 6)/2, total_h])
-                cube([throat_w + 6, throat_d + 6, 7]);
+            // main bank block
+            translate([-outer_w/2, -outer_d/2, 0])
+                cube([outer_w, outer_d, bank_h]);
+
+            // A-frame side hoods (iconic Jones side profile)
+            for (sx=[-1,1]) {
+                hull() {
+                    translate([
+                        sx*(outer_w/2) - (sx>0?0:3),
+                        -outer_d/2,
+                        bank_h*0.4
+                    ]) cube([3, outer_d, 3]);
+                    translate([
+                        sx*(outer_w/2 + hood_reach) - (sx>0?0:22),
+                        -outer_d/2 + 3,
+                        -10
+                    ]) cube([22, outer_d - 6, 3]);
+                }
+            }
+
+            // flanges for frame rails
+            translate([-(outer_w + 28)/2, -outer_d/2, 10])
+                cube([outer_w + 28, outer_d, 6]);
+
+            // funnel socket
+            translate([-(throat_w+10)/2, -(throat_d+10)/2, bank_h])
+                cube([throat_w+10, throat_d+10, 7]);
         }
 
-        // funnel throat pocket
-        translate([-(throat_w + clear)/2, -(throat_d + clear)/2, total_h - 1])
-            cube([throat_w + clear, throat_d + clear, 10]);
+        // open top feed pocket
+        translate([-inner_w/2, -bank_d/2, bank_h - 8])
+            cube([inner_w, bank_d, 20]);
 
-        // feed pocket above baffles
-        translate([-inner_bank_w/2, -bank_d/2 + 1, exit_h + bank_h - 6])
-            cube([inner_bank_w, bank_d - 2, 8]);
+        // funnel sleeve pocket
+        translate([-(throat_w+clear)/2, -(throat_d+clear)/2, bank_h-1])
+            cube([throat_w+clear, throat_d+clear, 12]);
 
-        // alternating chute cavities
-        for (i = [0:n_chutes-1]) chute_cut(i);
+        // alternating chute cavities (= the vanes are the solid left between cuts)
+        for (i=[0:n_chutes-1]) chute_cavity(i);
 
-        // open underside L/R exits; keep thin center divider wall
-        translate([-outer_bank_w/2 - 12, -bank_d/2 + 2, -1])
-            cube([outer_bank_w/2 + 12 - baffle/2, bank_d - 4, exit_h + 4]);
-        translate([baffle/2, -bank_d/2 + 2, -1])
-            cube([outer_bank_w/2 + 12 - baffle/2, bank_d - 4, exit_h + 4]);
-
-        // open side faces so sediment exits into cups (not trapped)
-        translate([-outer_bank_w/2 - 15, -bank_d/2 + 3, -1])
-            cube([16, bank_d - 6, exit_h + 8]);
-        translate([outer_bank_w/2 - 1, -bank_d/2 + 3, -1])
-            cube([16, bank_d - 6, exit_h + 8]);
+        // open underside L/R under hoods so pans receive freely
+        translate([-outer_w/2 - hood_reach - 2, -bank_d/2 + 4, -14])
+            cube([outer_w/2 + hood_reach - 1, bank_d - 8, 20]);
+        translate([1, -bank_d/2 + 4, -14])
+            cube([outer_w/2 + hood_reach - 1, bank_d - 8, 20]);
     }
 }
 
-// ============================================================================
-// FUNNEL — large mouth, seats into riffle collar
-// ============================================================================
 module funnel() {
+    // Single connected shell: collar thickened outward (no floating lip)
     difference() {
         union() {
-            // upper collar
-            translate([-funnel_top_w/2, -funnel_top_d/2, funnel_cone_h])
-                cube([funnel_top_w, funnel_top_d, funnel_collar_h]);
-            // outer spill lip
-            translate([-(funnel_top_w+12)/2, -(funnel_top_d+12)/2,
-                       funnel_cone_h + funnel_collar_h - 4])
-                cube([funnel_top_w + 12, funnel_top_d + 12, 4]);
-            // cone shell
+            // thick-walled collar (outer includes rim)
+            translate([-(funnel_w+2*funnel_rim)/2, -(funnel_d+2*funnel_rim)/2, funnel_cone])
+                cube([funnel_w+2*funnel_rim, funnel_d+2*funnel_rim, funnel_collar]);
+            // cone
             hull() {
-                translate([-(funnel_top_w - 4)/2, -(funnel_top_d - 4)/2, funnel_cone_h])
-                    cube([funnel_top_w - 4, funnel_top_d - 4, 0.5]);
-                translate([-(throat_w + 2*funnel_t)/2, -(throat_d + 2*funnel_t)/2, 0])
-                    cube([throat_w + 2*funnel_t, throat_d + 2*funnel_t, 0.5]);
+                translate([-(funnel_w+2*funnel_rim-6)/2, -(funnel_d+2*funnel_rim-6)/2, funnel_cone])
+                    cube([funnel_w+2*funnel_rim-6, funnel_d+2*funnel_rim-6, 1]);
+                translate([-(throat_w+2*funnel_t)/2, -(throat_d+2*funnel_t)/2, 0])
+                    cube([throat_w+2*funnel_t, throat_d+2*funnel_t, 1]);
             }
-            // insertion sleeve
-            translate([-throat_w/2, -throat_d/2, -12])
-                cube([throat_w, throat_d, 13]);
+            // sleeve
+            translate([-throat_w/2, -throat_d/2, -16])
+                cube([throat_w, throat_d, 17]);
         }
-
         // hollow collar
-        translate([-(funnel_top_w - 2*funnel_t)/2, -(funnel_top_d - 2*funnel_t)/2,
-                   funnel_cone_h - 0.1])
-            cube([funnel_top_w - 2*funnel_t, funnel_top_d - 2*funnel_t,
-                  funnel_collar_h + 1]);
-
+        translate([-(funnel_w-2*funnel_t)/2, -(funnel_d-2*funnel_t)/2, funnel_cone-0.1])
+            cube([funnel_w-2*funnel_t, funnel_d-2*funnel_t, funnel_collar+2]);
         // hollow cone
         hull() {
-            translate([-(funnel_top_w - 2*funnel_t - 4)/2,
-                       -(funnel_top_d - 2*funnel_t - 4)/2,
-                       funnel_cone_h])
-                cube([funnel_top_w - 2*funnel_t - 4,
-                      funnel_top_d - 2*funnel_t - 4, 0.6]);
-            translate([-(throat_w - 2*funnel_t)/2, -(throat_d - 2*funnel_t)/2, 0])
-                cube([throat_w - 2*funnel_t, throat_d - 2*funnel_t, 0.6]);
+            translate([-(funnel_w-2*funnel_t-6)/2, -(funnel_d-2*funnel_t-6)/2, funnel_cone])
+                cube([funnel_w-2*funnel_t-6, funnel_d-2*funnel_t-6, 1.2]);
+            translate([-(throat_w-2*funnel_t)/2, -(throat_d-2*funnel_t)/2, 0])
+                cube([throat_w-2*funnel_t, throat_d-2*funnel_t, 1.2]);
         }
-
-        // open sleeve bore
-        translate([-(throat_w - 2*funnel_t)/2, -(throat_d - 2*funnel_t)/2, -13])
-            cube([throat_w - 2*funnel_t, throat_d - 2*funnel_t, 16]);
-
-        // open lip center
-        translate([-(funnel_top_w - 2)/2, -(funnel_top_d - 2)/2,
-                   funnel_cone_h + funnel_collar_h - 4.1])
-            cube([funnel_top_w - 2, funnel_top_d - 2, 5]);
+        // sleeve bore
+        translate([-(throat_w-2*funnel_t)/2, -(throat_d-2*funnel_t)/2, -17])
+            cube([throat_w-2*funnel_t, throat_d-2*funnel_t, 20]);
     }
 }
 
-// ============================================================================
-// ASSEMBLY PREVIEWS (do not print)
-// ============================================================================
 module assembly() {
     ns = nests();
-    color([0.35, 0.45, 0.55]) catch_tray();
-    for (i = [0:3]) {
-        color(i < 2 ? [0.92, 0.78, 0.25] : [0.85, 0.55, 0.25])
-            translate([ns[i][0], ns[i][1], tray_floor + 0.4])
-                cup();
-    }
-    color([0.55, 0.55, 0.6])
-        translate([0, ns[0][1], tray_floor + cup_h + 8.5])
-            riffle();
-    color([0.4, 0.55, 0.75])
-        translate([0, ns[0][1], tray_floor + cup_h + 8.5 + bank_h + exit_h + 7])
-            funnel();
-}
-
-module tray_with_cups() {
-    // Clear view of 4 separate removable cups in the spill tray
-    ns = nests();
-    color([0.35, 0.45, 0.55]) catch_tray();
-    cup_colors = [
-        [0.95, 0.80, 0.20],
-        [0.30, 0.70, 0.85],
-        [0.95, 0.55, 0.20],
-        [0.45, 0.75, 0.40]
-    ];
-    for (i = [0:3]) {
-        color(cup_colors[i])
-            translate([ns[i][0], ns[i][1], tray_floor + 0.4])
-                cup();
-    }
+    color([0.42,0.45,0.50]) catch_tray();
+    color([0.50,0.52,0.55]) translate([0,0,tray_floor]) frame();
+    cols=[[0.93,0.78,0.22],[0.30,0.62,0.82],[0.93,0.52,0.22],[0.42,0.72,0.42]];
+    for (i=[0:3])
+        color(cols[i]) translate([ns[i][0], ns[i][1], tray_floor+0.5]) cup();
+    color([0.60,0.60,0.64])
+        translate([0, -22, riffle_z+8]) riffle();
+    color([0.38,0.52,0.78])
+        translate([0, -22, riffle_z+8+bank_h+7]) funnel();
 }
 
 module exploded() {
     ns = nests();
-    color([0.35, 0.45, 0.55]) catch_tray();
-    cup_colors = [
-        [0.95, 0.80, 0.20],
-        [0.30, 0.70, 0.85],
-        [0.95, 0.55, 0.20],
-        [0.45, 0.75, 0.40]
-    ];
-    for (i = [0:3]) {
-        color(cup_colors[i])
-            translate([ns[i][0], ns[i][1], tray_floor + 18])
-                cup();
-    }
-    color([0.55, 0.55, 0.6])
-        translate([0, ns[0][1], tray_floor + cup_h + 55])
-            riffle();
-    color([0.4, 0.55, 0.75])
-        translate([0, ns[0][1], tray_floor + cup_h + 140])
-            funnel();
+    color([0.42,0.45,0.50]) catch_tray();
+    color([0.50,0.52,0.55]) translate([0,0,30]) frame();
+    cols=[[0.93,0.78,0.22],[0.30,0.62,0.82],[0.93,0.52,0.22],[0.42,0.72,0.42]];
+    for (i=[0:3]) color(cols[i]) translate([ns[i][0], ns[i][1], 55]) cup();
+    color([0.60,0.60,0.64]) translate([0,-22,150]) riffle();
+    color([0.38,0.52,0.78]) translate([0,-22,250]) funnel();
 }
 
-if (PART == "cup") cup();
-else if (PART == "catch_tray") catch_tray();
-else if (PART == "riffle") riffle();
-else if (PART == "funnel") funnel();
-else if (PART == "tray_with_cups") tray_with_cups();
-else if (PART == "exploded") exploded();
+module side_view() {
+    // Rotate so OpenSCAD default camera shows the classic A-frame profile
+    rotate([0, 0, 90]) assembly();
+}
+
+if (PART=="cup") cup();
+else if (PART=="catch_tray") catch_tray();
+else if (PART=="frame") frame();
+else if (PART=="riffle") riffle();
+else if (PART=="funnel") funnel();
+else if (PART=="exploded") exploded();
+else if (PART=="side_view") side_view();
 else assembly();

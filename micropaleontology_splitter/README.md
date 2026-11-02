@@ -1,54 +1,54 @@
-# Micropaleontology dry-sediment splitter (2-way, 4 cups)
+# Micropaleontology dry-sediment splitter (Jones-type, 2-way)
 
-Gravity-fed **Jones-style riffle splitter** for dried sediment samples. Sediment is split **1:1 into two streams**; the catch tray holds **four separate removable cups** (active pair A1/B1 under the outlets, spare pair A2/B2 for sequential splits).
+A **classic Jones micro-riffle** layout for dried sediment — the same family of tool used in micropaleontology labs — rebuilt as **separate hollow printable parts** (the earlier single STL fused into an unusable solid).
 
-This redesign replaces the earlier single fused STL that printed as an unusable solid block. Every functional cavity is modeled with `difference()`, and each piece is a separate printable body.
+```
+        ┌─────────────────────┐
+        │   LARGE FUNNEL      │  ← anti-spill hopper
+        └─────────┬───────────┘
+                  │
+           ╱│╱│╱│╱│╱│╱│╲│╲     ← alternating vanes (1:1 split)
+        ───╱  L   │   R  ╲───  ← A-frame side discharges
+              ↓       ↓
+            [A1]    [B1]       ← active pans (print 4 total)
+            [A2]    [B2]       ← spare pans for sequential splits
+        └─────────────────────┘  ← secondary spill tray + stand
+```
 
-## Parts to print
+Still a **2-way** splitter (left / right). Four cups = two under the outlets + two spares, like commercial Jones kits that ship four pans.
 
-| STL | Qty | Role |
-|-----|-----|------|
-| `stl/cup.stl` | **4** | Removable collection cups |
-| `stl/catch_tray.stl` | 1 | Secondary spill tub + 4 cup bays + rails |
-| `stl/riffle.stl` | 1 | 12 alternating chutes → left / right |
-| `stl/funnel.stl` | 1 | Large anti-spill funnel |
+## Print list
 
-`stl/original_solid_block.stl` is the prior failed design, kept for reference only — do not print.
+| Part | Qty | STL |
+|------|-----|-----|
+| Hi-back pan / cup | **4** | `stl/cup.stl` |
+| Spill catch tray | 1 | `stl/catch_tray.stl` |
+| Open stand / frame | 1 | `stl/frame.stl` |
+| Riffle bank (12 chutes) | 1 | `stl/riffle.stl` |
+| Funnel | 1 | `stl/funnel.stl` |
+
+`stl/original_solid_block.stl` is the prior failed one-piece model (reference only).
 
 ## Assemble
 
-1. Seat four cups in the tray bays (`A1`/`B1` front = active; `A2`/`B2` rear = spare).
-2. Rest the riffle body on the front rails above `A1`/`B1`.
-3. Drop the funnel sleeve into the riffle collar.
-4. Pour dried sediment into the funnel; collect the two halves in `A1` and `B1`.
-5. For further halving, swap in the spare cups and re-split one aliquot.
+1. Place the catch tray on the bench; drop the frame into it.
+2. Seat pans in labeled wells: **A1/B1** under the discharges, **A2/B2** at the back as spares.
+3. Set the riffle onto the frame rails (A-frame hoods point into A1 and B1).
+4. Seat the funnel sleeve into the riffle socket.
+5. Pour dried sediment into the funnel; collect halves in A1 and B1. Swap spare pans to re-split.
 
-## Print settings (FDM)
+## Print settings
 
-- Material: PLA or PETG
-- Layer height: 0.20 mm (0.12 mm optional on riffle for cleaner chute edges)
-- Perimeters: ≥ 3 · Infill: 20–30% · No supports needed for these orientations
-- Suggested orientation: cups/tray/funnel flat on their bases; riffle on its base (collar up)
-- Clearance between mates is 0.5 mm — dry-fit and lightly sand if your printer runs hot/large
-
-## Rebuild STLs
+- PLA or PETG · 0.20 mm layers · ≥3 perimeters · 20–30% infill
+- Orient each part on its flat base; no supports required
+- Clearance between mates: 0.6 mm — sand lightly if your printer runs large
 
 ```bash
-chmod +x scripts/build_stls.sh
 ./scripts/build_stls.sh
 ```
 
-Or open `scad/splitter.scad` in OpenSCAD, set `PART` to `cup` / `catch_tray` / `riffle` / `funnel`, and export.
+OpenSCAD source: `scad/splitter.scad` (`PART` selector). Preview-only: `assembly`, `exploded`, `side_view`.
 
-Preview-only modes (do not slice): `assembly`, `tray_with_cups`, `exploded`.
+## Sizing
 
-## Design notes
-
-- **2-way split:** 12 chutes, even count, alternating left/right exits.
-- **Chute width:** 5 mm — suitable for fine dried sediment; widen in the SCAD parameters if grains bridge.
-- **Secondary container:** the catch tray rim retains spills that miss a cup.
-- **Accuracy** of the split vs. a calibrated lab Jones splitter is unverified until you test with your sediment.
-
-## Parameters
-
-Tunable at the top of `scad/splitter.scad`: wall thickness, cup size, chute count/width, funnel mouth, and nest gaps.
+Footprint ~260×210 mm, overall height ~250 mm — close to the original attempt’s envelope, but hollow and separable. Chute width defaults to 7 mm (tweak `chute_w` / `n_chutes` for your grain size). Split accuracy is unverified until tested with your sediment.
