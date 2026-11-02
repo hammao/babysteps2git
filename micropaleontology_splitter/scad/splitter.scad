@@ -11,6 +11,8 @@
 
 /* [Part] */
 PART = "assembly"; // ["cup","catch_tray","frame","riffle","funnel","assembly","exploded","side_view"]
+/* [Orbit preview] */
+ORBIT_DEG = 0; // used by walkthrough frame script
 
 wall = 2.6;
 clear = 0.6;
@@ -60,11 +62,13 @@ throat_d = bank_d - 6;
 
 riffle_z = tray_floor + cup_h + 10;
 
+// ONLY two cups sit under the L/R outlets (true 2-way).
+// The other two park in a rear STORAGE bay — not under any chute.
 function nests() = [
-    [-(cup_w/2 + 8), -22],
-    [ (cup_w/2 + 8), -22],
-    [-(cup_w/2 + 8),  78],
-    [ (cup_w/2 + 8),  78]
+    [-(cup_w/2 + 10), -28],  // A1 ACTIVE left  ← receives LEFT stream
+    [ (cup_w/2 + 10), -28],  // B1 ACTIVE right ← receives RIGHT stream
+    [-(cup_w/2 + 10),  85],  // A2 SPARE (storage only)
+    [ (cup_w/2 + 10),  85]   // B2 SPARE (storage only)
 ];
 
 // -----------------------------------------------------------------------------
@@ -89,14 +93,36 @@ module catch_tray() {
             translate([p[0]-(cup_w+1.2)/2, p[1]-(cup_d+1.2)/2, tray_floor-1])
                 cube([cup_w+1.2, cup_d+cup_back+1.2, 1.2]);
         }
-        labels=["A1","B1","A2","B2"];
-        for (i=[0:3])
-            translate([ns[i][0], ns[i][1], tray_floor-1.3])
-                linear_extrude(1)
-                    text(labels[i], size=9, halign="center", valign="center",
-                         font="Liberation Sans:style=Bold");
+        // Active labels under outlets
+        translate([ns[0][0], ns[0][1], tray_floor-1.3])
+            linear_extrude(1)
+                text("A1 LEFT", size=7, halign="center", valign="center",
+                     font="Liberation Sans:style=Bold");
+        translate([ns[1][0], ns[1][1], tray_floor-1.3])
+            linear_extrude(1)
+                text("B1 RIGHT", size=7, halign="center", valign="center",
+                     font="Liberation Sans:style=Bold");
+        // Spare labels
+        translate([ns[2][0], ns[2][1], tray_floor-1.3])
+            linear_extrude(1)
+                text("A2 SPARE", size=7, halign="center", valign="center",
+                     font="Liberation Sans:style=Bold");
+        translate([ns[3][0], ns[3][1], tray_floor-1.3])
+            linear_extrude(1)
+                text("B2 SPARE", size=7, halign="center", valign="center",
+                     font="Liberation Sans:style=Bold");
     }
+    // Divider wall: ACTIVE zone (front) vs STORAGE bay (rear)
+    // Makes clear this is NOT a 4-way / 4-compartment splitter.
+    translate([-(tray_w - 2*tray_t - 8)/2, 28, tray_floor])
+        cube([tray_w - 2*tray_t - 8, 3.2, 18]);
+    // Simple block labels (avoid glyph explosion / disconnected bodies)
+    translate([-55, 40, tray_floor])
+        cube([110, 8, 6]);   // spare-bay marker bar
+    translate([-70, -82, tray_floor])
+        cube([140, 8, 6]);   // active-bay marker bar
 }
+
 
 module frame() {
     // One connected stand: legs + skirt ties + top cradle
@@ -260,13 +286,16 @@ module assembly() {
     ns = nests();
     color([0.42,0.45,0.50]) catch_tray();
     color([0.50,0.52,0.55]) translate([0,0,tray_floor]) frame();
-    cols=[[0.93,0.78,0.22],[0.30,0.62,0.82],[0.93,0.52,0.22],[0.42,0.72,0.42]];
-    for (i=[0:3])
-        color(cols[i]) translate([ns[i][0], ns[i][1], tray_floor+0.5]) cup();
+    // Active pans under L/R outlets (bright)
+    color([0.95,0.75,0.15]) translate([ns[0][0], ns[0][1], tray_floor+0.5]) cup(); // A1
+    color([0.25,0.60,0.90]) translate([ns[1][0], ns[1][1], tray_floor+0.5]) cup(); // B1
+    // Spare pans in rear storage (muted — not in the split path)
+    color([0.75,0.70,0.55]) translate([ns[2][0], ns[2][1], tray_floor+0.5]) cup(); // A2
+    color([0.70,0.72,0.68]) translate([ns[3][0], ns[3][1], tray_floor+0.5]) cup(); // B2
     color([0.60,0.60,0.64])
-        translate([0, -22, riffle_z+8]) riffle();
+        translate([0, -28, riffle_z+8]) riffle();
     color([0.38,0.52,0.78])
-        translate([0, -22, riffle_z+8+bank_h+7]) funnel();
+        translate([0, -28, riffle_z+8+bank_h+7]) funnel();
 }
 
 module exploded() {
@@ -291,4 +320,4 @@ else if (PART=="riffle") riffle();
 else if (PART=="funnel") funnel();
 else if (PART=="exploded") exploded();
 else if (PART=="side_view") side_view();
-else assembly();
+else rotate([0, 0, ORBIT_DEG]) assembly();

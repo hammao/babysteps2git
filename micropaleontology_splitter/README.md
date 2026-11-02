@@ -29,6 +29,13 @@ Still a **2-way** splitter (left / right). Four cups = two under the outlets + t
 
 `stl/original_solid_block.stl` is the prior failed one-piece model (reference only).
 
+## Walkthrough
+
+- `video/two_way_splitter_walkthrough.mp4` — how-it-works animation + 3D orbit
+- `video/splitter_3d_orbit.mp4` — rotating 3D assembly only
+
+**Important:** this is a **2-way** splitter. Only A1 (left) and B1 (right) sit under the discharges. A2/B2 are spare pans parked behind a divider in a storage bay — they are not fed by chutes.
+
 ## Assemble
 
 1. Place the catch tray on the bench; drop the frame into it.
